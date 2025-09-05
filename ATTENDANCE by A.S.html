@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Attendance (A_S) Management</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <style>
+    /* Basic Reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Roboto", sans-serif;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body.light {
+      --bg-color: #fafafa;
+      --card-bg: #fff;
+      --text-color: #222;
+      --primary-color: #6200ee;
+      --text-secondary: #555;
+      --hover-bg: rgba(98, 0, 238, 0.1);
+      --danger-color: #b00020;
+      --fab-bg: #6200ee;
+      --input-bg: #fff;
+      --input-border: #ccc;
+    }
+
+    body.dark {
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --text-color: #eee;
+      --primary-color: #bb86fc;
+      --text-secondary: #ccc;
+      --hover-bg: rgba(187, 134, 252, 0.2);
+      --danger-color: #cf6679;
+      --fab-bg: #bb86fc;
+      --input-bg: #333;
+      --input-border: #555;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* App Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      background-color: var(--card-bg);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 99;
+    }
+
+    header h1 {
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: var(--primary-color);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    button, .theme-toggle {
+      background: none;
+      border: none;
+      color: var(--primary-color);
+      cursor: pointer;
+      font-size: 1rem;
+      outline-offset: 2px;
+      border-radius: 6px;
+      padding: 6px 10px;
+      transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    button:hover, .theme-toggle:hover {
+      background-color: var(--hover-bg);
+    }
+
+    /* Main container */
+    main {
+      flex-grow: 1;
+      padding: 1rem 1.5rem 3.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Navigation Tabs */
+    nav {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+      overflow-x: auto;
+    }
+
+    nav button.tab {
+      flex: 1 0 auto;
+      padding: 0.7rem 1rem;
+      font-weight: 600;
+      font-size: 1rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      text-align: center;
+      color: var(--text-secondary);
+      transition: border-color 0.3s, color 0.3s;
+    }
+
+    nav button.tab.active {
+      border-bottom-color: var(--primary-color);
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+
+    nav button.tab:hover:not(.active) {
+      background-color: var(--hover-bg);
+      border-radius: 8px;
+    }
+
+    /* Card styles */
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+      padding: 1.25rem 1.5rem;
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: box-shadow 0.3s;
+    }
+
+    .card:hover {
+      box-shadow: 0 5px 14px rgb(0 0 0 / 0.2);
+    }
+
+    .card h3 {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--primary-color);
+      margin-bottom: 0.3rem;
+    }
+
+    .card .value {
+      font-weight: 700;
+      font-size: 2.5rem;
+      line-height: 1.2;
+      color: var(--text-color);
+    }
+
+    .card .subtext {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 0.3rem;
+    }
+
+    /* Table styling */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      border-radius: 10px;
+      overflow: hidden;
+      background-color: var(--card-bg);
+      box-shadow: 0 2px 6px rgb(0 0 0 / 0.12);
+    }
+
+    thead {
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: 600;
+    }
+
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-size: 0.875rem;
+      border-bottom: 1px solid #ddd;
+      vertical-align: middle;
+    }
+
+    tbody tr:hover {
+      background-color: var(--hover-bg);
+    }
+
+    td .material-icons {
+      vertical-align: middle;
+    }
+
+    td button.delete-btn {
+      background: var(--danger-color);
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    td button.delete-btn:hover {
+      background: #9e1f3d;
+    }
+
+    /* Inputs & Forms */
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select {
+      padding: 8px 10px;
+      border-radius: 5px;
+      border: 1.5px solid var(--input-border);
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      font-size: 0.9rem;
+      width: 100%;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="date"]:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 6px var(--primary-color);
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.3rem;
+      display: block;
+      color: var(--text-secondary);
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    /* Modal styling */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 105;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem;
+    }
+
+    .modal.active {
+      display: flex;
+      animation: fadeIn 0.3s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-content {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 4px 15px rgb(0 0 0 / 0.2);
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      border: none;
+      background: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+      color: var(--primary-color);
+    }
+
+    /* Floating Action Button (FAB) */
+    .fab-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 100;
+      display: flex;
+      gap: 0.75rem;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    button.fab {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background-color: var(--fab-bg);
+      border: none;
+      color: white;
+      font-size: 32px;
+      box-shadow: 0 4px 10px rgb(0 0 0 / 0.25);
+      cursor: pointer;
+      transition: background-color 0.3s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    button.fab:hover {
+      background-color: #4200b8;
+    }
+
+    /* Search bar */
+    .search-bar {
+      margin-bottom: 1rem;
+      max-width: 300px;
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1.5px solid var(--input-border);
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      transition: border-color 0.3s;
+    }
+
+    .search-bar input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 6px var(--primary-color);
+      outline: none;
+    }
+
+    /* Toggle switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--input-border);
+      transition: 0.4s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--card-bg);
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary-color);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(22px);
+    }
+
+    /* Tables scroll */
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    /* Checkbox styling */
+    input[type="checkbox"] {
+      cursor: pointer;
+      transform: scale(1.2);
+      margin-right: 6px;
+    }
+
+    /* Disabled style */
+    .disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 600px) {
+      nav button.tab {
+        font-size: 0.9rem;
+        padding: 0.6rem 0.7rem;
+      }
+
+      .card .value {
+        font-size: 2rem;
+      }
+    }
+
+    /* Smooth button active effect */
+    button:active {
+      transform: scale(0.95);
+      transition: transform 0.1s;
+    }
+  </style>
+</head>
+
+<body class="dark">
+
+  <header>
+    <h1><span class="material-icons">event_available</span> Attendance (A_S)</h1>
+    <div class="header-actions">
+      <button id="analyze-btn" title="Analyze">
+        <span class="material-icons" style="font-size:18px">analytics</span> Analyze
+      </button>
+      <button id="export-btn" title="Export Data">
+        <span class="material-icons" style="font-size:18px">file_download</span> Export
+      </button>
+      <label class="theme-toggle switch" title="Toggle Dark/Light Theme">
+        <input type="checkbox" id="theme-switch" />
+        <span class="slider"></span>
+      </label>
+    </div>
+  </header>
+
+  <main>
+    <!-- Login Screen -->
+    <section id="login-screen" style="max-width: 360px; margin: 5rem auto;" aria-live="polite">
+      <h2 style="text-align:center; margin-bottom: 1rem;">Log In</h2>
+      <form id="login-form" aria-label="Login form">
+        <div class="form-group">
+          <label for="login-username">Username</label>
+          <input type="text" id="login-username" required autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" required autocomplete="current-password" />
+        </div>
+        <button type="submit" style="width:100%; background-color: var(--primary-color); color:#fff; padding:10px; font-weight:600; border-radius:6px; font-size:1rem;">Login</button>
+      </form>
+      <div style="text-align:center; margin-top: 1rem;">
+        <small>Don't have an account? <button id="show-register-btn" style="background:none; border:none; color: var(--primary-color); cursor:pointer;">Register</button></small>
+      </div>
+    </section>
+
+    <!-- Register Screen -->
+    <section id="register-screen" style="max-width: 360px; margin: 5rem auto; display:none;" aria-live="polite">
+      <h2 style="text-align:center; margin-bottom: 1rem;">Register</h2>
+      <form id="register-form" aria-label="Registration form">
+        <div class="form-group">
+          <label for="reg-username">Username</label>
+          <input type="text" id="reg-username" required autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <input type="password" id="reg-password" required autocomplete="new-password" />
+        </div>
+        <button type="submit" style="width:100%; background-color: var(--primary-color); color:#fff; padding:10px; font-weight:600; border-radius:6px; font-size:1rem;">Register</button>
+      </form>
+      <div style="text-align:center; margin-top: 1rem;">
+        <small>Already have an account? <button id="show-login-btn" style="background:none; border:none; color: var(--primary-color); cursor:pointer;">Login</button></small>
+      </div>
+    </section>
+
+    <!-- Main App UI -->
+    <section id="app-ui" style="display:none;" aria-live="polite">
+      <nav role="tablist" aria-label="Main Tabs">
+        <button class="tab active" data-tab="dashboard" role="tab" aria-selected="true" tabindex="0">Dashboard</button>
+        <button class="tab" data-tab="students" role="tab" aria-selected="false" tabindex="-1">Students</button>
+        <button class="tab" data-tab="teachers" role="tab" aria-selected="false" tabindex="-1">Teachers</button>
+        <button class="tab" data-tab="subjects" role="tab" aria-selected="false" tabindex="-1">Subjects</button>
+        <button class="tab" data-tab="attendance" role="tab" aria-selected="false" tabindex="-1">Attendance</button>
+        <button class="tab" data-tab="holidays" role="tab" aria-selected="false" tabindex="-1">Holidays</button>
+        <button class="tab" data-tab="analysis" role="tab" aria-selected="false" tabindex="-1">Analysis</button>
+      </nav>
+
+      <!-- Dashboard Tab -->
+      <section id="dashboard" role="tabpanel" tabindex="0">
+        <div class="card-container">
+          <div class="card" aria-label="Total Students">
+            <h3>Total Students</h3>
+            <div class="value" id="total-students">0</div>
+            <div class="subtext">Enrolled</div>
+          </div>
+          <div class="card" aria-label="Total Teachers">
+            <h3>Total Teachers</h3>
+            <div class="value" id="total-teachers">0</div>
+            <div class="subtext">Registered</div>
+          </div>
+          <div class="card" aria-label="Attendance Rate">
+            <h3>Attendance Rate</h3>
+            <div class="value" id="attendance-rate">0%</div>
+            <div class="subtext">Overall Average</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Students Tab -->
+      <section id="students" role="tabpanel" tabindex="0" hidden>
+        <div class="search-bar">
+          <input type="text" id="student-search" placeholder="Search students by name, ID, or mobile" aria-label="Search students" />
+        </div>
+        <div class="table-wrapper">
+          <table aria-label="Students list">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Student ID</th>
+                <th>Mobile Number</th>
+                <th>Present</th>
+                <th>Absent</th>
+                <th>Attendance %</th>
+                <th>Last Present Date</th>
+                <th>Absent Days</th>
+                <th>Delete</th>
+              </tr>
+            </thead>
+            <tbody id="students-table-body"></tbody>
+          </table>
+        </div>
+        <button id="delete-all-students" style="margin-top: 1rem; background-color: var(--danger-color); color:#fff; border:none; padding: 10px 14px; border-radius: 7px; cursor: pointer;">Delete All Students</button>
+      </section>
+
+      <!-- Teachers Tab -->
+      <section id="teachers" role="tabpanel" tabindex="0" hidden>
+        <div class="search-bar">
+          <input type="text" id="teacher-search" placeholder="Search teachers by name, subject, or mobile" aria-label="Search teachers" />
+        </div>
+        <div class="table-wrapper">
+          <table aria-label="Teachers list">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Subject</th>
+                <th>Mobile Number</th>
+                <th>Delete</th>
+              </tr>
+            </thead>
+            <tbody id="teachers-table-body"></tbody>
+          </table>
+        </div>
+        <button id="delete-all-teachers" style="margin-top: 1rem; background-color: var(--danger-color); color:#fff; border:none; padding: 10px 14px; border-radius: 7px; cursor: pointer;">Delete All Teachers</button>
+      </section>
+
+      <!-- Subjects Tab -->
+      <section id="subjects" role="tabpanel" tabindex="0" hidden>
+        <div class="search-bar">
+          <input type="text" id="subject-search" placeholder="Search subjects by name or teacher" aria-label="Search subjects" />
+        </div>
+        <div class="table-wrapper">
+          <table aria-label="Subjects list">
+            <thead>
+              <tr>
+                <th>Subject Name</th>
+                <th>Teacher Name</th>
+                <th>Teacher Contact</th>
+                <th>Delete</th>
+              </tr>
+            </thead>
+            <tbody id="subjects-table-body"></tbody>
+          </table>
+        </div>
+        <button id="delete-all-subjects" style="margin-top: 1rem; background-color: var(--danger-color); color:#fff; border:none; padding: 10px 14px; border-radius: 7px; cursor: pointer;">Delete All Subjects</button>
+      </section>
+
+      <!-- Attendance Tab -->
+      <section id="attendance" role="tabpanel" tabindex="0" hidden>
+        <form id="attendance-form" style="max-width: 600px; margin-bottom: 1rem;">
+          <div class="form-group">
+            <label for="attendance-date">Date</label>
+            <input type="date" id="attendance-date" required />
+          </div>
+          <div class="form-group">
+            <label for="attendance-subject">Subject</label>
+            <select id="attendance-subject" required aria-label="Select subject for attendance"></select>
+          </div>
+          <button type="submit" style="background-color: var(--primary-color); color:#fff; padding:10px 14px; font-weight:600; border-radius:6px; cursor:pointer; margin-bottom: 1rem;">Mark Attendance</button>
+        </form>
+        <div><em>Mark attendance by ticking present or absent checkboxes. When marking attendance on a holiday, form is disabled.</em></div>
+        <div class="table-wrapper">
+          <table aria-label="Attendance list" id="attendance-table" style="margin-top: 0.5rem;">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Present</th>
+                <th>Absent</th>
+              </tr>
+            </thead>
+            <tbody id="attendance-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Holidays Tab -->
+      <section id="holidays" role="tabpanel" tabindex="0" hidden>
+        <form id="holiday-form" style="max-width: 480px; margin-bottom: 1rem;">
+          <div class="form-group">
+            <label for="holiday-date">Select Holiday Date</label>
+            <input type="date" id="holiday-date" required />
+          </div>
+          <button type="button" id="mark-holiday-btn" style="background-color: var(--primary-color); color:#fff; padding:10px 14px; font-weight:600; border-radius:6px; cursor:pointer;">Mark Holiday</button>
+          <button type="button" id="remove-holiday-btn" style="background-color: var(--danger-color); color:#fff; padding:10px 14px; font-weight:600; border-radius:6px; cursor:pointer; margin-left: 8px;">Remove Holiday</button>
+        </form>
+        <div class="table-wrapper">
+          <table aria-label="Holidays list">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Delete</th>
+              </tr>
+            </thead>
+            <tbody id="holidays-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Analysis Tab -->
+      <section id="analysis" role="tabpanel" tabindex="0" hidden>
+        <div style="max-width: 960px;">
+          <h3>Attendance Analysis & Reports</h3>
+          <div style="margin-bottom: 1rem;">
+            <label for="analysis-filter-type">Filter Type:</label>
+            <select id="analysis-filter-type" aria-label="Select filter type">
+              <option value="student">Per Student</option>
+              <option value="subject">Per Subject</option>
+            </select>
+          </div>
+          <div id="analysis-filter-container"></div>
+          <button id="generate-report-btn" style="background-color: var(--primary-color); color:#fff; padding:10px 14px; font-weight:600; border-radius:6px; cursor:pointer; margin-top: 0.5rem;">Generate Report</button>
+          <div id="analysis-results" style="margin-top: 1rem;"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <!-- Modals -->
+  <!-- Student Modal -->
+  <div class="modal" id="student-modal" role="dialog" aria-modal="true" aria-labelledby="student-modal-title">
+    <div class="modal-content">
+      <button class="modal-close" aria-label="Close student form">&times;</button>
+      <h2 id="student-modal-title">Add Student</h2>
+      <form id="student-form">
+        <div class="form-group">
+          <label for="student-fullname">Full Name</label>
+          <input type="text" id="student-fullname" required />
+        </div>
+        <div class="form-group">
+          <label for="student-course">Course</label>
+          <input type="text" id="student-course" required />
+        </div>
+        <div class="form-group">
+          <label for="student-id">Student ID</label>
+          <input type="text" id="student-id" required />
+        </div>
+        <div class="form-group">
+          <label for="student-mobile">Mobile Number</label>
+          <input type="text" id="student-mobile" required pattern="[0-9+ -]{7,15}" title="Enter a valid phone number" />
+        </div>
+        <button type="submit" style="background-color: var(--primary-color); color:#fff; padding:10px 14px; font-weight:600; border-radius:6px; cursor:pointer;">Save Student</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Teacher Modal -->
+  <div class="modal" id="teacher-modal" role="dialog" aria-modal="true" aria-labelledby="teacher-modal-title">
+    <div class="modal-content">
+      <button class="modal-close" aria-label="Close teacher form">&times;</button>
+      <h2 id="teacher-modal-title">Add Teacher</h2>
+      <form id="teacher-form">
+        <div class="form-group">
+          <label for="teacher-name">Name</label>
+          <input type="text" id="teacher-name" required />
+        </div>
+        <div class="form-group">
+          <label for="teacher-subject">Subject</label>
+          <input type="text" id="teacher-subject" required />
+        </div>
+        <div class="form-group">
+          <label for="teacher-mobile">Mobile Number</label>
+          <input type="text" id="teacher-mobile" required pattern="[0-9+ -]{7,15}" title="Enter a valid phone number" />
+        </div>
+        <button type="submit" style="background-color: var(--primary-color); color:#fff; padding:10px 14px; font-weight:600; border-radius:6px; cursor:pointer;">Save Teacher</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Subject Modal -->
+  <div class="modal" id="subject-modal" role="dialog" aria-modal="true" aria-labelledby="subject-modal-title">
+    <div class="modal-content">
+      <button class="modal-close" aria-label="Close subject form">&times;</button>
+      <h2 id="subject-modal-title">Add Subject</h2>
+      <form id="subject-form">
+        <div class="form-group">
+          <label for="subject-name">Subject Name</label>
+          <input type="text" id="subject-name" required />
+        </div>
+        <div class="form-group">
+          <label for="subject-teacher-name">Teaching Teacher’s Name</label>
+          <input type="text" id="subject-teacher-name" required />
+        </div>
+        <div class="form-group">
+          <label for="subject-teacher-contact">Teacher’s Contact Number</label>
+          <input type="text" id="subject-teacher-contact" required pattern="[0-9+ -]{7,15}" title="Enter a valid phone number" />
+        </div>
+        <button type="submit" style="background-color: var(--primary-color); color:#fff; padding:10px 14px; font-weight:600; border-radius:6px; cursor:pointer;">Save Subject</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="fab-container" aria-label="Add new records">
+    <button class="fab" id="add-student-fab" title="Add Student"><span class="material-icons">person_add</span></button>
+    <button class="fab" id="add-teacher-fab" title="Add Teacher"><span class="material-icons">person</span></button>
+    <button class="fab" id="add-subject-fab" title="Add Subject"><span class="material-icons">book</span></button>
+  </div>
+
+  <script>
+    (() => {
+      // Dark/light theme toggle
+      const body = document.body;
+      const themeSwitch = document.getElementById('theme-switch');
+
+      // Load theme from localStorage or default to dark
+      const savedTheme = localStorage.getItem('as_theme') || 'dark';
+      body.classList.remove('dark', 'light');
+      body.classList.add(savedTheme);
+      themeSwitch.checked = savedTheme === 'light';
+
+      themeSwitch.addEventListener('change', () => {
+        if (themeSwitch.checked) {
+          body.classList.replace('dark', 'light');
+          localStorage.setItem('as_theme', 'light');
+        } else {
+          body.classList.replace('light', 'dark');
+          localStorage.setItem('as_theme', 'dark');
+        }
+      });
+
+      // Authentication system - username and password storage (hashed for demo simplicity)
+      // WARNING: This is NOT secure for production use; only localStorage demo.
+      let currentUser = null;
+
+      function hashPassword(pw) {
+        // Simple hash for demo: convert chars to char code sum + salt
+        let hash = 0;
+        for (let i = 0; i < pw.length; i++) {
+          hash += pw.charCodeAt(i) * (i + 1);
+        }
+        return btoa(hash.toString());
+      }
+
+      // DOM refs for login/register
+      const loginSection = document.getElementById('login-screen');
+      const registerSection = document.getElementById('register-screen');
+      const appUI = document.getElementById('app-ui');
+
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+      const showRegisterBtn = document.getElementById('show-register-btn');
+      const showLoginBtn = document.getElementById('show-login-btn');
+
+      // Switch screens
+      showRegisterBtn.addEventListener('click', () => {
+        loginSection.style.display = 'none';
+        registerSection.style.display = '';
+      });
+      showLoginBtn.addEventListener('click', () => {
+        registerSection.style.display = 'none';
+        loginSection.style.display = '';
+      });
+
+      // Register Handler
+      registerForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const username = document.getElementById('reg-username').value.trim();
+        const password = document.getElementById('reg-password').value;
+
+        if (!username || !password) return alert('Please enter username and password');
+
+        let users = JSON.parse(localStorage.getItem('as_users') || '{}');
+        if (users[username]) {
+          alert('Username already exists. Please login or choose another username.');
+          return;
+        }
+
+        users[username] = { password: hashPassword(password) };
+
+        localStorage.setItem('as_users', JSON.stringify(users));
+        alert('Registration successful! Please login.');
+
+        // Reset form and show login
+        registerForm.reset();
+        registerSection.style.display = 'none';
+        loginSection.style.display = '';
+      });
+
+      // Login Handler
+      loginForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
+
+        const users = JSON.parse(localStorage.getItem('as_users') || '{}');
+        if (!users[username] || users[username].password !== hashPassword(password)) {
+          alert('Invalid username or password');
+          return;
+        }
+
+        // Set current user and load app UI
+        currentUser = username;
+        localStorage.setItem('as_loggedin', currentUser);
+        loadData();
+      });
+
+      // Session check
+      const sessionUser = localStorage.getItem('as_loggedin');
+      if (sessionUser) {
+        currentUser = sessionUser;
+        loadData();
+      }
+
+      // Store data keys per user
+      function getKey(key) {
+        return `as_${currentUser}_${key}`;
+      }
+
+      // ----------------------------------
+      // Data Storage with localStorage:
+      // students, teachers, subjects, attendance, holidays
+      // ----------------------------------
+      let students = []; // {id, name, course, studentId, mobile, attendanceHistory: [{date, subjectId, status}]}
+      let teachers = [];
+      let subjects = [];
+      let attendance = []; // Records: {date, subjectId, studentId, status: 'present' | 'absent'}
+      let holidays = []; // Dates in ISO string 'YYYY-MM-DD'
+
+      // DOM references for tabs and data display
+      const tabs = document.querySelectorAll('nav button.tab');
+      const tabSections = { dashboard: document.getElementById('dashboard'), students: document.getElementById('students'), teachers: document.getElementById('teachers'), subjects: document.getElementById('subjects'), attendance: document.getElementById('attendance'), holidays: document.getElementById('holidays'), analysis: document.getElementById('analysis') };
+
+      // Utility to switch tabs
+      tabs.forEach(tab => tab.addEventListener('click', e => {
+        const targetTab = e.currentTarget.getAttribute('data-tab');
+        tabs.forEach(t => {
+          t.classList.toggle('active', t.getAttribute('data-tab') === targetTab);
+          t.setAttribute('aria-selected', t.getAttribute('data-tab') === targetTab ? 'true' : 'false');
+          t.tabIndex = t.getAttribute('data-tab') === targetTab ? 0 : -1;
+        });
+        Object.entries(tabSections).forEach(([key, section]) => section.hidden = (key !== targetTab));
+      }));
+
+      // Data Persistence Helpers
+      function saveAllData() {
+        localStorage.setItem(getKey('students'), JSON.stringify(students));
+        localStorage.setItem(getKey('teachers'), JSON.stringify(teachers));
+        localStorage.setItem(getKey('subjects'), JSON.stringify(subjects));
+        localStorage.setItem(getKey('attendance'), JSON.stringify(attendance));
+        localStorage.setItem(getKey('holidays'), JSON.stringify(holidays));
+      }
+
+      function loadAllData() {
+        students = JSON.parse(localStorage.getItem(getKey('students')) || '[]');
+        teachers = JSON.parse(localStorage.getItem(getKey('teachers')) || '[]');
+        subjects = JSON.parse(localStorage.getItem(getKey('subjects')) || '[]');
+        attendance = JSON.parse(localStorage.getItem(getKey('attendance')) || '[]');
+        holidays = JSON.parse(localStorage.getItem(getKey('holidays')) || '[]');
+      }
+
+      // Logout helper (Optional)
+      // function logout() {
+      //   localStorage.removeItem('as_loggedin');
+      //   location.reload();
+      // }
+
+      // Load data & init app UI
+      function loadData() {
+        loadAllData();
+        loginSection.style.display = 'none';
+        registerSection.style.display = 'none';
+        appUI.style.display = '';
+
+        // Init display & event listeners
+        updateDashboard();
+        renderStudentsTable();
+        renderTeachersTable();
+        renderSubjectsTable();
+        renderHolidaysTable();
+        populateSubjectSelect();
+        renderAttendanceMarking();
+        updateAttendanceRate();
+        resetAnalysisUI();
+      }
+
+      // Dashboard Updates
+      function updateDashboard() {
+        document.getElementById('total-students').textContent = students.length;
+        document.getElementById('total-teachers').textContent = teachers.length;
+        updateAttendanceRate();
+      }
+
+      // Calculate attendance rate: total presents / total attendance records %
+      function updateAttendanceRate() {
+        if (attendance.length === 0) {
+          document.getElementById('attendance-rate').textContent = '0%';
+          return;
+        }
+        const totalRecords = attendance.length;
+        const presentRecords = attendance.filter(rec => rec.status === 'present').length;
+        const rate = ((presentRecords / totalRecords) * 100).toFixed(1);
+        document.getElementById('attendance-rate').textContent = rate + '%';
+      }
+
+      // ========== STUDENTS MANAGEMENT ==========
+      const studentModal = document.getElementById('student-modal');
+      const studentForm = document.getElementById('student-form');
+      let editingStudentIndex = -1;
+
+      // Open student modal
+      function openStudentModal(editIndex = -1) {
+        editingStudentIndex = editIndex;
+        studentForm.reset();
+
+        if (editIndex > -1) {
+          const stud = students[editIndex];
+          studentForm['student-fullname'].value = stud.name;
+          studentForm['student-course'].value = stud.course;
+          studentForm['student-id'].value = stud.studentId;
+          studentForm['student-mobile'].value = stud.mobile;
+          document.getElementById('student-modal-title').textContent = 'Edit Student';
+        } else {
+          document.getElementById('student-modal-title').textContent = 'Add Student';
+        }
+
+        showModal(studentModal);
+      }
+
+      // Close all modals helper
+      function closeModal(modal) {
+        modal.classList.remove('active');
+      }
+
+      // Show modal
+      function showModal(modal) {
+        modal.classList.add('active');
+        modal.querySelector('input, select, textarea').focus();
+      }
+
+      // Add/edit student form submit
+      studentForm.addEventListener('submit', e => {
+        e.preventDefault();
+        let name = studentForm['student-fullname'].value.trim();
+        let course = studentForm['student-course'].value.trim();
+        let studentId = studentForm['student-id'].value.trim();
+        let mobile = studentForm['student-mobile'].value.trim();
+
+        // Validate studentId is unique except when editing same student
+        const exists = students.some((s, i) => s.studentId.toLowerCase() === studentId.toLowerCase() && i !== editingStudentIndex);
+        if (exists) {
+          alert('Student ID must be unique');
+          return;
+        }
+
+        if (editingStudentIndex > -1) {
+          // Update
+          students[editingStudentIndex] = { ...students[editingStudentIndex], name, course, studentId, mobile };
+        } else {
+          // Add new student
+          students.push({ name, course, studentId, mobile });
+        }
+
+        saveAllData();
+        updateDashboard();
+        renderStudentsTable();
+        closeModal(studentModal);
+      });
+
+      // Delete student by index
+      function deleteStudent(index) {
+        if (!confirm('Delete this student? All attendance records related will be kept intact.')) return;
+        students.splice(index, 1);
+        saveAllData();
+        updateDashboard();
+        renderStudentsTable();
+        // Remove attendance records for deleted student? The spec says do NOT auto-delete records, so keep.
+      }
+
+      // Delete all students
+      document.getElementById('delete-all-students').addEventListener('click', () => {
+        if (confirm('Delete ALL students? Attendance data will remain intact.')) {
+          students = [];
+          saveAllData();
+          updateDashboard();
+          renderStudentsTable();
+        }
+      });
+
+      // Render students table with filtering
+      function renderStudentsTable() {
+        const tbody = document.getElementById('students-table-body');
+        const filter = document.getElementById('student-search').value.toLowerCase();
+        tbody.innerHTML = '';
+
+        // For attendance calculations:
+        // For each student, calculate attendance% and Last Present Date and Absent days counted from attendance records
+        // attendance records: {date, subjectId, studentId, status}
+
+        function getStudentAttendanceStats(studentId) {
+          const studentAttendances = attendance.filter(a => a.studentId === studentId);
+          const presents = studentAttendances.filter(a => a.status === 'present').length;
+          const absents = studentAttendances.filter(a => a.status === 'absent').length;
+          const total = presents + absents;
+          const attendancePercent = total ? ((presents / total) * 100).toFixed(1) : "0.0";
+          // last present date
+          const lastPresent = studentAttendances
+            .filter(a => a.status === 'present')
+            .map(a => a.date)
+            .sort()
+            .pop() || null;
+          return { attendancePercent, lastPresent, absentDays: absents };
+        }
+
+        students.forEach((stud, i) => {
+          if (stud.name.toLowerCase().includes(filter) || stud.studentId.toLowerCase().includes(filter) || stud.mobile.toLowerCase().includes(filter)) {
+            const stats = getStudentAttendanceStats(stud.studentId);
+
+            const tr = document.createElement('tr');
+
+            tr.innerHTML = `
+              <td title="Course: ${stud.course}">${stud.name}</td>
+              <td>${stud.studentId}</td>
+              <td>${stud.mobile}</td>
+
+              <td style="text-align:center;">-</td> <!-- Present / Absent checkboxes not editable here -->
+
+              <td style="text-align:center;">-</td>
+
+              <td style="text-align:center;">${stats.attendancePercent}%</td>
+              <td style="text-align:center;">${stats.lastPresent || '-'}</td>
+              <td style="text-align:center;">${stats.absentDays}</td>
+              <td style="text-align:center;">
+                <button class="delete-btn" aria-label="Delete student ${stud.name}" data-index="${i}">
+                  <span class="material-icons" style="font-size: 18px;">delete</span>
+                </button>
+              </td>`;
+
+            tbody.appendChild(tr);
+          }
+        });
+
+        // Add event delegation for delete buttons
+        tbody.querySelectorAll('button.delete-btn').forEach(btn => {
+          btn.addEventListener('click', e => {
+            const idx = Number(e.currentTarget.dataset.index);
+            deleteStudent(idx);
+          });
+        });
+      }
+
+      // Student search filter input event
+      document.getElementById('student-search').addEventListener('input', renderStudentsTable);
+
+      // ========== TEACHERS MANAGEMENT ==========
+      const teacherModal = document.getElementById('teacher-modal');
+      const teacherForm = document.getElementById('teacher-form');
+      let editingTeacherIndex = -1;
+
+      // Open teacher modal
+      function openTeacherModal(editIndex = -1) {
+        editingTeacherIndex = editIndex;
+        teacherForm.reset();
+
+        if (editIndex > -1) {
+          const teach = teachers[editIndex];
+          teacherForm['teacher-name'].value = teach.name;
+          teacherForm['teacher-subject'].value = teach.subject;
+          teacherForm['teacher-mobile'].value = teach.mobile;
+          document.getElementById('teacher-modal-title').textContent = 'Edit Teacher';
+        } else {
+          document.getElementById('teacher-modal-title').textContent = 'Add Teacher';
+        }
+
+        showModal(teacherModal);
+      }
+
+      // Teacher form submit
+      teacherForm.addEventListener('submit', e => {
+        e.preventDefault();
+        let name = teacherForm['teacher-name'].value.trim();
+        let subject = teacherForm['teacher-subject'].value.trim();
+        let mobile = teacherForm['teacher-mobile'].value.trim();
+
+        if (editingTeacherIndex > -1) {
+          teachers[editingTeacherIndex] = { name, subject, mobile };
+        } else {
+          teachers.push({ name, subject, mobile });
+        }
+        saveAllData();
+        updateDashboard();
+        renderTeachersTable();
+        closeModal(teacherModal);
+        populateSubjectSelect();
+      });
+
+      // Delete teacher by index
+      function deleteTeacher(index) {
+        if (!confirm('Delete this teacher?')) return;
+        teachers.splice(index, 1);
+        saveAllData();
+        updateDashboard();
+        renderTeachersTable();
+        populateSubjectSelect();
+      }
+
+      // Delete all teachers
+      document.getElementById('delete-all-teachers').addEventListener('click', () => {
+        if (confirm('Delete ALL teachers?')) {
+          teachers = [];
+          saveAllData();
+          updateDashboard();
+          renderTeachersTable();
+          populateSubjectSelect();
+        }
+      });
+
+      // Render teachers table
+      function renderTeachersTable() {
+        const tbody = document.getElementById('teachers-table-body');
+        const filter = document.getElementById('teacher-search').value.toLowerCase();
+        tbody.innerHTML = '';
+
+        teachers.forEach((teach, i) => {
+          if (teach.name.toLowerCase().includes(filter) || teach.subject.toLowerCase().includes(filter) || teach.mobile.toLowerCase().includes(filter)) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${teach.name}</td>
+              <td>${teach.subject}</td>
+              <td>${teach.mobile}</td>
+              <td style="text-align:center;">
+                <button class="delete-btn" aria-label="Delete teacher ${teach.name}" data-index="${i}">
+                  <span class="material-icons" style="font-size: 18px;">delete</span>
+                </button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          }
+        });
+
+        tbody.querySelectorAll('button.delete-btn').forEach(btn => {
+          btn.addEventListener('click', e => {
+            const idx = Number(e.currentTarget.dataset.index);
+            deleteTeacher(idx);
+          });
+        });
+      }
+
+      document.getElementById('teacher-search').addEventListener('input', renderTeachersTable);
+
+      // ========== SUBJECTS MANAGEMENT ==========
+      const subjectModal = document.getElementById('subject-modal');
+      const subjectForm = document.getElementById('subject-form');
+      let editingSubjectIndex = -1;
+
+      // Open subject modal
+      function openSubjectModal(editIndex = -1) {
+        editingSubjectIndex = editIndex;
+        subjectForm.reset();
+
+        if (editIndex > -1) {
+          const sub = subjects[editIndex];
+          subjectForm['subject-name'].value = sub.name;
+          subjectForm['subject-teacher-name'].value = sub.teacherName;
+          subjectForm['subject-teacher-contact'].value = sub.teacherContact;
+          document.getElementById('subject-modal-title').textContent = 'Edit Subject';
+        } else {
+          document.getElementById('subject-modal-title').textContent = 'Add Subject';
+        }
+
+        showModal(subjectModal);
+      }
+
+      // Subject form submit
+      subjectForm.addEventListener('submit', e => {
+        e.preventDefault();
+        let name = subjectForm['subject-name'].value.trim();
+        let teacherName = subjectForm['subject-teacher-name'].value.trim();
+        let teacherContact = subjectForm['subject-teacher-contact'].value.trim();
+
+        if (editingSubjectIndex > -1) {
+          subjects[editingSubjectIndex] = { name, teacherName, teacherContact };
+        } else {
+          subjects.push({ name, teacherName, teacherContact });
+        }
+        saveAllData();
+        updateDashboard();
+        renderSubjectsTable();
+        populateSubjectSelect();
+        closeModal(subjectModal);
+      });
+
+      // Delete subject by index
+      function deleteSubject(index) {
+        if (!confirm('Delete this subject?')) return;
+        subjects.splice(index, 1);
+        saveAllData();
+        updateDashboard();
+        renderSubjectsTable();
+        populateSubjectSelect();
+      }
+
+      // Delete all subjects
+      document.getElementById('delete-all-subjects').addEventListener('click', () => {
+        if (confirm('Delete ALL subjects?')) {
+          subjects = [];
+          saveAllData();
+          updateDashboard();
+          renderSubjectsTable();
+          populateSubjectSelect();
+        }
+      });
+
+      // Render subjects table
+      function renderSubjectsTable() {
+        const tbody = document.getElementById('subjects-table-body');
+        const filter = document.getElementById('subject-search').value.toLowerCase();
+        tbody.innerHTML = '';
+
+        subjects.forEach((sub, i) => {
+          if (sub.name.toLowerCase().includes(filter) || sub.teacherName.toLowerCase().includes(filter)) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${sub.name}</td>
+              <td>${sub.teacherName}</td>
+              <td>${sub.teacherContact}</td>
+              <td style="text-align:center;">
+                <button class="delete-btn" aria-label="Delete subject ${sub.name}" data-index="${i}">
+                  <span class="material-icons" style="font-size: 18px;">delete</span>
+                </button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          }
+        });
+
+        tbody.querySelectorAll('button.delete-btn').forEach(btn => {
+          btn.addEventListener('click', e => {
+            const idx = Number(e.currentTarget.dataset.index);
+            deleteSubject(idx);
+          });
+        });
+      }
+
+      document.getElementById('subject-search').addEventListener('input', renderSubjectsTable);
+
+      // ========== HOLIDAYS MANAGEMENT ==========
+      let holidaysTableBody = document.getElementById('holidays-table-body');
+      let holidayDateInput = document.getElementById('holiday-date');
+      let markHolidayBtn = document.getElementById('mark-holiday-btn');
+      let removeHolidayBtn = document.getElementById('remove-holiday-btn');
+
+      function renderHolidaysTable() {
+        holidaysTableBody.innerHTML = '';
+        holidays.forEach((date, i) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${date}</td>
+            <td style="text-align:center;"><button class="delete-btn" aria-label="Delete holiday ${date}" data-index="${i}"><span class="material-icons" style="font-size:18px;">delete</span></button></td>
+          `;
+          holidaysTableBody.appendChild(tr);
+        });
+        holidaysTableBody.querySelectorAll('button.delete-btn').forEach(btn => {
+          btn.addEventListener('click', e => {
+            const idx = Number(e.currentTarget.dataset.index);
+            if (confirm(`Remove holiday on ${holidays[idx]}?`)) {
+              holidays.splice(idx, 1);
+              saveAllData();
+              renderHolidaysTable();
+              renderAttendanceMarking();
+            }
+          });
+        });
+      }
+
+      markHolidayBtn.addEventListener('click', () => {
+        const selectedDate = holidayDateInput.value;
+        if (!selectedDate) {
+          alert('Please select a date');
+          return;
+        }
+        if (holidays.includes(selectedDate)) {
+          alert('This date is already marked as a holiday');
+          return;
+        }
+        holidays.push(selectedDate);
+        holidays.sort();
+        saveAllData();
+        renderHolidaysTable();
+        renderAttendanceMarking();
+      });
+
+      removeHolidayBtn.addEventListener('click', () => {
+        const selectedDate = holidayDateInput.value;
+        if (!selectedDate) {
+          alert('Please select a date');
+          return;
+        }
+        const idx = holidays.indexOf(selectedDate);
+        if (idx === -1) {
+          alert('This date is not marked as holiday');
+          return;
+        }
+        holidays.splice(idx, 1);
+        saveAllData();
+        renderHolidaysTable();
+        renderAttendanceMarking();
+      });
+
+      renderHolidaysTable();
+
+      // ========== ATTENDANCE MANAGEMENT ==========
+      const attendanceForm = document.getElementById('attendance-form');
+      const attendanceDateInput = document.getElementById('attendance-date');
+      const attendanceSubjectSelect = document.getElementById('attendance-subject');
+      const attendanceTableBody = document.getElementById('attendance-table-body');
+
+      // Populate attendance subject select options
+      function populateSubjectSelect() {
+        attendanceSubjectSelect.innerHTML = '';
+        if (subjects.length === 0) {
+          attendanceSubjectSelect.disabled = true;
+          attendanceSubjectSelect.innerHTML = '<option value="">No subjects available</option>';
+          return;
+        }
+        attendanceSubjectSelect.disabled = false;
+        attendanceSubjectSelect.innerHTML = '<option value="" disabled selected>Select subject</option>';
+        for (const sub of subjects) {
+          const opt = document.createElement('option');
+          opt.value = sub.name;
+          opt.textContent = sub.name;
+          attendanceSubjectSelect.appendChild(opt);
+        }
+      }
+
+      // Render attendance table showing students with Present/Absent checkboxes for selected date & subject
+      function renderAttendanceMarking() {
+        const date = attendanceDateInput.value;
+        const subject = attendanceSubjectSelect.value;
+
+        // Disable attendance form if date is holiday
+        if (date && holidays.includes(date)) {
+          attendanceDateInput.disabled = true;
+          attendanceSubjectSelect.disabled = true;
+          attendanceForm.querySelector('button[type="submit"]').disabled = true;
+          attendanceTableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; font-style:italic; color: var(--danger-color);">Attendance marking is disabled on holidays</td></tr>';
+          return;
+        } else {
+          attendanceDateInput.disabled = false;
+          attendanceSubjectSelect.disabled = !attendanceSubjectSelect.value;
+          attendanceForm.querySelector('button[type="submit"]').disabled = !(date && subject);
+        }
+
+        if (!date || !subject || students.length === 0) {
+          attendanceTableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; font-style:italic;">Select date, subject, and add students to mark attendance.</td></tr>';
+          return;
+        }
+
+        attendanceTableBody.innerHTML = '';
+        for (let i = 0; i < students.length; i++) {
+          const stud = students[i];
+          // Find attendance record for this date, subject, student
+          const recIndex = attendance.findIndex(a => a.date === date && a.subjectId === subject && a.studentId === stud.studentId);
+          let presentChecked = false;
+          let absentChecked = false;
+          if (recIndex !== -1) {
+            if (attendance[recIndex].status === 'present') presentChecked = true;
+            else if (attendance[recIndex].status === 'absent') absentChecked = true;
+          }
+          const tr = document.createElement('tr');
+
+          tr.innerHTML = `
+            <td>${stud.name}</td>
+            <td style="text-align:center;"><input type="checkbox" class="present-checkbox" data-student="${stud.studentId}" ${presentChecked ? 'checked' : ''} /></td>
+            <td style="text-align:center;"><input type="checkbox" class="absent-checkbox" data-student="${stud.studentId}" ${absentChecked ? 'checked' : ''} /></td>
+          `;
+
+          attendanceTableBody.appendChild(tr);
+        }
+
+        // Add events to checkboxes for mutual exclusivity
+        attendanceTableBody.querySelectorAll('input.present-checkbox').forEach(chk => {
+          chk.addEventListener('change', e => {
+            const studentId = e.target.dataset.student;
+            if (e.target.checked) {
+              // Uncheck absent
+              const absentChk = attendanceTableBody.querySelector(`input.absent-checkbox[data-student="${studentId}"]`);
+              if (absentChk) absentChk.checked = false;
+            }
+          });
+        });
+
+        attendanceTableBody.querySelectorAll('input.absent-checkbox').forEach(chk => {
+          chk.addEventListener('change', e => {
+            const studentId = e.target.dataset.student;
+            if (e.target.checked) {
+              // Uncheck present
+              const presentChk = attendanceTableBody.querySelector(`input.present-checkbox[data-student="${studentId}"]`);
+              if (presentChk) presentChk.checked = false;
+            }
+          });
+        });
+      }
+
+      // Enable / disable submit button based on date+subject + holiday
+      attendanceDateInput.addEventListener('change', renderAttendanceMarking);
+      attendanceSubjectSelect.addEventListener('change', renderAttendanceMarking);
+
+      attendanceForm.addEventListener('submit', e => {
+        e.preventDefault();
+
+        const date = attendanceDateInput.value;
+        const subject = attendanceSubjectSelect.value;
+
+        if (!date || !subject) return alert('Please select date and subject');
+
+        // Check holiday
+        if (holidays.includes(date)) {
+          return alert('Cannot mark attendance on holidays.');
+        }
+
+        const presentCheckboxes = attendanceTableBody.querySelectorAll('input.present-checkbox');
+        const absentCheckboxes = attendanceTableBody.querySelectorAll('input.absent-checkbox');
+
+        for (let i = 0; i < students.length; i++) {
+          const stud = students[i];
+          const studentId = stud.studentId;
+          const presentChk = attendanceTableBody.querySelector(`input.present-checkbox[data-student="${studentId}"]`);
+          const absentChk = attendanceTableBody.querySelector(`input.absent-checkbox[data-student="${studentId}"]`);
+
+          // Remove existing record for date/subject/student
+          const idx = attendance.findIndex(a => a.date === date && a.subjectId === subject && a.studentId === studentId);
+          if (idx !== -1) attendance.splice(idx, 1);
+
+          if (presentChk.checked) {
+            attendance.push({ date, subjectId: subject, studentId, status: 'present' });
+          } else if (absentChk.checked) {
+            attendance.push({ date, subjectId: subject, studentId, status: 'absent' });
+          }
+          // If neither checked, no record stored
+        }
+
+        saveAllData();
+        alert('Attendance marked successfully!');
+        updateDashboard();
+        renderStudentsTable();
+      });
+
+      // ========== HOLIDAYS TAB ========== Already handled above
+
+      // ========== ANALYSIS & REPORTS ==========
+      const analysisFilterType = document.getElementById('analysis-filter-type');
+      const analysisFilterContainer = document.getElementById('analysis-filter-container');
+      const generateReportBtn = document.getElementById('generate-report-btn');
+      const analysisResults = document.getElementById('analysis-results');
+
+      // Build dynamic filter fields
+      function resetAnalysisUI() {
+        analysisResults.innerHTML = '';
+        updateAnalysisFilters();
+      }
+
+      function updateAnalysisFilters() {
+        analysisFilterContainer.innerHTML = '';
+        if (analysisFilterType.value === 'student') {
+          // Dropdown to select student
+          if (students.length === 0) {
+            analysisFilterContainer.innerHTML = '<p>No students available.</p>';
+            generateReportBtn.disabled = true;
+            return;
+          }
+
+          generateReportBtn.disabled = false;
+
+          const label = document.createElement('label');
+          label.htmlFor = 'analysis-student-select';
+          label.textContent = 'Select Student:';
+          const select = document.createElement('select');
+          select.id = 'analysis-student-select';
+
+          for (const s of students) {
+            const option = document.createElement('option');
+            option.value = s.studentId;
+            option.textContent = s.name;
+            select.appendChild(option);
+          }
+
+          const div = document.createElement('div');
+          div.className = 'form-group';
+          div.appendChild(label);
+          div.appendChild(select);
+
+          analysisFilterContainer.appendChild(div);
+        } else if (analysisFilterType.value === 'subject') {
+          // Dropdown to select subject
+          if (subjects.length === 0) {
+            analysisFilterContainer.innerHTML = '<p>No subjects available.</p>';
+            generateReportBtn.disabled = true;
+            return;
+          }
+
+          generateReportBtn.disabled = false;
+
+          const label = document.createElement('label');
+          label.htmlFor = 'analysis-subject-select';
+          label.textContent = 'Select Subject:';
+          const select = document.createElement('select');
+          select.id = 'analysis-subject-select';
+
+          for (const sub of subjects) {
+            const option = document.createElement('option');
+            option.value = sub.name;
+            option.textContent = sub.name;
+            select.appendChild(option);
+          }
+
+          const div = document.createElement('div');
+          div.className = 'form-group';
+          div.appendChild(label);
+          div.appendChild(select);
+
+          analysisFilterContainer.appendChild(div);
+        }
+      }
+
+      analysisFilterType.addEventListener('change', updateAnalysisFilters);
+
+      generateReportBtn.addEventListener('click', () => {
+        analysisResults.innerHTML = '';
+        if (analysisFilterType.value === 'student') {
+          const select = document.getElementById('analysis-student-select');
+          if (!select || !select.value) return alert('Select a student');
+          const studentId = select.value;
+          const student = students.find(s => s.studentId === studentId);
+          if (!student) return alert('Student not found');
+
+          // Attendance for this student
+          const records = attendance.filter(a => a.studentId === studentId);
+          const total = records.length;
+          const present = records.filter(r => r.status === 'present').length;
+          const absent = records.filter(r => r.status === 'absent').length;
+
+          // Build table to show attendance per subject for student
+          const div = document.createElement('div');
+          div.innerHTML = `<h4>Attendance Report for ${student.name}</h4>
+            <p>Total attendance records: ${total}</p>
+            <p>Present: ${present}</p>
+            <p>Absent: ${absent}</p>
+          `;
+
+          // Build subject wise % table
+          if (total === 0) {
+            div.innerHTML += `<p>No attendance records found for this student.</p>`;
+            analysisResults.appendChild(div);
+            return;
+          }
+
+          const statsBySubject = {};
+          records.forEach(record => {
+            if (!statsBySubject[record.subjectId]) statsBySubject[record.subjectId] = { present: 0, absent: 0 };
+            if (record.status === 'present') statsBySubject[record.subjectId].present++;
+            else if (record.status === 'absent') statsBySubject[record.subjectId].absent++;
+          });
+
+          const table = document.createElement('table');
+          table.style.marginTop = '1rem';
+          table.style.width = '100%';
+          table.style.borderCollapse = 'collapse';
+          const thead = document.createElement('thead');
+          thead.innerHTML = '<tr style="background-color: var(--primary-color); color: white;"><th>Subject</th><th>Present</th><th>Absent</th><th>Attendance %</th></tr>';
+          table.appendChild(thead);
+
+          const tbody = document.createElement('tbody');
+          for (const subj in statsBySubject) {
+            const p = statsBySubject[subj].present;
+            const a = statsBySubject[subj].absent;
+            const totalSubj = p + a;
+            const pct = totalSubj ? ((p / totalSubj) * 100).toFixed(1) : '0.0';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${subj}</td><td>${p}</td><td>${a}</td><td>${pct}%</td>`;
+            tbody.appendChild(tr);
+          }
+          table.appendChild(tbody);
+
+          div.appendChild(table);
+          analysisResults.appendChild(div);
+        } else if (analysisFilterType.value === 'subject') {
+          const select = document.getElementById('analysis-subject-select');
+          if (!select || !select.value) return alert('Select a subject');
+          const subjectName = select.value;
+
+          // Attendance records for this subject
+          const records = attendance.filter(a => a.subjectId === subjectName);
+          const total = records.length;
+          const present = records.filter(r => r.status === 'present').length;
+          const absent = records.filter(r => r.status === 'absent').length;
+
+          const div = document.createElement('div');
+          div.innerHTML = `<h4>Attendance Report for Subject: ${subjectName}</h4>
+            <p>Total attendance records: ${total}</p>
+            <p>Present: ${present}</p>
+            <p>Absent: ${absent}</p>`;
+
+          if (total === 0) {
+            div.innerHTML += '<p>No attendance records found for this subject.</p>';
+            analysisResults.appendChild(div);
+            return;
+          }
+
+          // Show student wise attendance % for this subject
+          const statsByStudent = {};
+
+          records.forEach(record => {
+            if (!statsByStudent[record.studentId]) statsByStudent[record.studentId] = { present: 0, absent: 0 };
+            if (record.status === 'present') statsByStudent[record.studentId].present++;
+            else if (record.status === 'absent') statsByStudent[record.studentId].absent++;
+          });
+
+          const table = document.createElement('table');
+          table.style.marginTop = '1rem';
+          table.style.width = '100%';
+          table.style.borderCollapse = 'collapse';
+          const thead = document.createElement('thead');
+          thead.innerHTML = '<tr style="background-color: var(--primary-color); color: white;"><th>Student Name</th><th>Present</th><th>Absent</th><th>Attendance %</th></tr>';
+          table.appendChild(thead);
+
+          const tbody = document.createElement('tbody');
+          for (const studId in statsByStudent) {
+            const p = statsByStudent[studId].present;
+            const a = statsByStudent[studId].absent;
+            const totalStud = p + a;
+            const pct = totalStud ? ((p / totalStud) * 100).toFixed(1) : '0.0';
+            const stud = students.find(s => s.studentId === studId);
+            const studName = stud ? stud.name : studId;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${studName}</td><td>${p}</td><td>${a}</td><td>${pct}%</td>`;
+            tbody.appendChild(tr);
+          }
+          table.appendChild(tbody);
+
+          div.appendChild(table);
+          analysisResults.appendChild(div);
+        }
+      });
+
+      // ========== EXPORT FUNCTIONALITY ==========
+      const exportBtn = document.getElementById('export-btn');
+
+      // Export all data as JSON or CSV or Excel or PDF (for simplicity export JSON and CSV)
+      exportBtn.addEventListener('click', () => {
+        if (!currentUser) return alert('Please login to export data.');
+        const dataToExport = {
+          students,
+          teachers,
+          subjects,
+          attendance,
+          holidays
+        };
+
+        // For demo: export JSON file
+        const dataStr = JSON.stringify(dataToExport, null, 2);
+        const blob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `attendance_data_${currentUser}_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 0);
+      });
+
+      // ========== ANALYZE BUTTON: Switch to Analysis tab ==========
+      const analyzeBtn = document.getElementById('analyze-btn');
+      analyzeBtn.addEventListener('click', () => {
+        // Switch to analysis tab
+        tabs.forEach(t => {
+          t.classList.toggle('active', t.getAttribute('data-tab') === 'analysis');
+          t.setAttribute('aria-selected', t.getAttribute('data-tab') === 'analysis' ? 'true' : 'false');
+          t.tabIndex = t.getAttribute('data-tab') === 'analysis' ? 0 : -1;
+        });
+        Object.entries(tabSections).forEach(([key, section]) => section.hidden = (key !== 'analysis'));
+      });
+
+      // ========== MODAL CLOSE BUTTONS ==========
+      document.querySelectorAll('.modal .modal-close').forEach(btn => {
+        btn.addEventListener('click', e => {
+          const modal = e.currentTarget.closest('.modal');
+          closeModal(modal);
+        });
+      });
+
+      // ========== FAB BUTTONS ==========
+      document.getElementById('add-student-fab').addEventListener('click', () => openStudentModal());
+      document.getElementById('add-teacher-fab').addEventListener('click', () => openTeacherModal());
+      document.getElementById('add-subject-fab').addEventListener('click', () => openSubjectModal());
+
+      // Close modal on ESC key
+      window.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.modal.active').forEach(modal => closeModal(modal));
+        }
+      });
+
+      // Initial population
+      populateSubjectSelect();
+
+    })();
+  </script>
+</body>
+
+</html>
